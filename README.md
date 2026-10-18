@@ -43,6 +43,14 @@ it — it is not a per-request cosmetic change.
 dsh plugin add @argszero/dsh-human-request-last
 ```
 
+If the package is not on your registry yet, install it straight from the
+repository instead — it builds itself on install (`prepare`), so the repository
+carries no build output:
+
+```sh
+dsh plugin add github:argszero/dsh-human-request-last
+```
+
 The package carries a bundle patch (`dsh.bundle.patch`), so adding it mounts it.
 To do it by hand, put the row in the profile's `cordis.patch.yml`:
 
