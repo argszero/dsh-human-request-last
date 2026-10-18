@@ -1,0 +1,73 @@
+{
+  "name": "@argszero/dsh-human-request-last",
+  "description": "Keeps the human's words last in every step that carries them. Every step's batch mixes the user's own message with harness-injected `user`-role context (runtime-context, time-context, skill-catalog, agent-instructions), distinguished only by `source.kind`; on an OpenAI-compatible route that maps every non-assistant message to `role: 'user'`, a small local model takes the last of them as the request and answers the timestamp instead of the task (discussion #10080, gpt-oss:20b and qwen3:8b on Ollama). This plugin listens to `agent/pre-step` with `prepend`, so it reads the fully composed batch, and moves injected context ahead of the human message, preserving each group's order. The rewrite is durable: the loop appends the batch in the order returned, so the log records it too. A step with no human message or no injected message is left untouched. Zero runtime dependencies, no core change.",
+  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/**/*.js",
+    "lib/types/**/*.d.ts",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/argszero/dsh-human-request-last.git"
+  },
+  "homepage": "https://github.com/argszero/dsh-human-request-last#readme",
+  "bugs": {
+    "url": "https://github.com/argszero/dsh-human-request-last/issues"
+  },
+  "keywords": [
+    "cordis",
+    "deepseek-harness",
+    "dsh",
+    "plugin",
+    "ollama",
+    "local-models",
+    "context",
+    "injection",
+    "message-order",
+    "agent-pre-step"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.2 || ~4.0.5-alpha.1",
+    "@deepseek-ai/dsh-agent": ">=0.1.7-rc.2 <0.2.0 || >=0.2.0-rc.1 <0.2.1-alpha.2 || >=0.2.1-alpha.2 <0.3.0",
+    "@deepseek-ai/dsh-llm": ">=0.1.7-rc.2 <0.2.0 || >=0.2.0-rc.1 <0.2.1-alpha.2 || >=0.2.1-alpha.2 <0.3.0"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.4",
+    "@deepseek-ai/dsh-agent": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-llm": "0.2.0-rc.2",
+    "@types/node": "^24.19.1",
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "pretest": "tsc",
+    "test": "node --test \"test/*.spec.mjs\"",
+    "prepublishOnly": "tsc",
+    "test:inject": "node scripts/inject-defects.mjs"
+  },
+  "engines": {
+    "node": "^22.19 || >=24"
+  }
+}

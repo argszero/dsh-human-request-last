@@ -1,0 +1,64 @@
+# The @argszero/dsh-human-request-last bundle patch: insert and go.
+#
+# Every step's batch arrives at the `agent/pre-step` waterfall and is assembled
+# there from three sources, all of them `role: 'user'`:
+#
+#   - the loop's own base returns the claimed input followed by the
+#     `runtime-context` snapshot (`agent-loop/src/agent.ts` `preStep`);
+#   - `time-context` and `session-reference` prepend their own after-next appends;
+#   - `tool-skill` pushes the skill catalog, `agent-instructions` its workspace
+#     instructions.
+#
+# Only `source.kind` separates them. The OpenAI-compatible route in `llm-pi-ai`
+# maps every non-assistant message to `role: 'user'` without consulting that
+# field, so the model receives four consecutive `user` messages with the real
+# request first and a timestamp last. Small local models answer the last one:
+# discussion #10080 is a file-edit request that produces no tool call at all,
+# because `gpt-oss:20b` explains the timestamp and `qwen3:8b` acknowledges the
+# skill catalog. The same model titles the session correctly from the same human
+# message, because there it is the only message it sees.
+#
+# This plugin moves the injected messages ahead of the human message at that
+# waterfall, and returns the batch in that order — which the loop then appends to
+# the session in that same order, so the reorder is durable rather than
+# cosmetic.
+#
+# ## Ordering matters, and this entry is what supplies it
+#
+# Listeners on one event live in one list and run outermost-first; a listener
+# registered with `prepend` is *unshifted*, so the last one registered runs
+# last. This plugin must therefore be mounted **after** the other `agent/pre-step`
+# contributors — that is what makes its after-next run after their appends, and
+# what lets it move the messages they added.
+#
+# An id-less `insert` pushes to the end of the entry list (`applyEntryPatches`),
+# so this patch mounts the plugin last automatically. Mounted earlier, the
+# plugin stays safe — nothing is dropped, duplicated or reordered wrongly — but a
+# contributor that runs after it keeps its own position at the tail, and the
+# request is no longer last. Mount it after them.
+#
+# ## Optional config
+#
+#   - insert:
+#       - id: human-request-last
+#         config:
+#           # 'reorder' (default) rewrites the batch and logs nothing; 'report'
+#           # logs one line per agent per change and rewrites nothing; 'off'
+#           # installs no listener at all.
+#           mode: reorder
+#           # Source kinds that mean "the human typed this". `user` is the kind a
+#           # genuine input carries; widen it (e.g. to 'agent') when a relayed
+#           # message is this deployment's request.
+#           humanKinds: [user]
+#           # Injected kinds to remove outright, e.g. [time-context] for a local
+#           # model that reads the clock as a task. Never removes a human kind.
+#           # `runtime-context` cannot be dropped this way: the loop appends its
+#           # fresh projection even when the placeholder is gone.
+#           dropKinds: []
+#
+# Nothing here writes: no file is created, no global is patched, and no session
+# event is produced beyond the batch the step already commits.
+
+- insert:
+    - id: human-request-last
+      name: '@argszero/dsh-human-request-last'
