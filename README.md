@@ -44,8 +44,9 @@ dsh plugin add @argszero/dsh-human-request-last
 ```
 
 If the package is not on your registry yet, install it straight from the
-repository instead — it builds itself on install (`prepare`), so the repository
-carries no build output:
+repository instead. The repository carries the compiled output (`lib/`, built
+from `src/` by `npm run build`), so a git install runs no build script — which
+matters because pnpm 10 refuses a git dependency that has one:
 
 ```sh
 dsh plugin add github:argszero/dsh-human-request-last
