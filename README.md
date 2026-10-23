@@ -40,17 +40,16 @@ it — it is not a per-request cosmetic change.
 ## Install
 
 ```sh
-dsh plugin add @argszero/dsh-human-request-last
+dsh plugin --profile <profile> add github:argszero/dsh-human-request-last
 ```
 
-If the package is not on your registry yet, install it straight from the
-repository instead. The repository carries the compiled output (`lib/`, built
-from `src/` by `npm run build`), so a git install runs no build script — which
-matters because pnpm 10 refuses a git dependency that has one:
-
-```sh
-dsh plugin add github:argszero/dsh-human-request-last
-```
+The git form is the only form there is right now: the npm name is not published,
+so `dsh plugin add @argszero/dsh-human-request-last` fails with `E404`. The
+repository carries the compiled output (`lib/`, built from `src/` by
+`npm run build`), so a git install runs no build script — which matters because
+pnpm 10 refuses a git dependency that has one. A plain `npm install` of the same
+git spec only places the files; `dsh plugin add` is the step that mounts it in
+the profile.
 
 The package carries a bundle patch (`dsh.bundle.patch`), so adding it mounts it.
 To do it by hand, put the row in the profile's `cordis.patch.yml`:
